@@ -1,0 +1,21 @@
+name: analytics_kit
+description: "A provider-agnostic analytics layer for Flutter apps: one AnalyticsService that fans out to any number of analytics SDKs, plus a hashed, persistent user ID."
+version: 1.0.0
+repository: https://github.com/alexosnach/AnalyticsKit-Flutter
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  crypto: ^3.0.6
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  shared_preferences_platform_interface: ^2.4.2

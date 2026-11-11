@@ -1,0 +1,30 @@
+name: analytics_kit_example
+description: "A sample app that uses analytics_kit the way a real app does."
+publish_to: none
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  analytics_kit:
+    path: ..
+
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.5.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+
+  uses-material-design: true
+
