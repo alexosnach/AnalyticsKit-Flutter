@@ -1,3 +1,4 @@
+import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'analytics_provider.dart';
 import 'analytics_service.dart';
@@ -37,7 +38,7 @@ class CompositeAnalytics implements AnalyticsService {
   }
 
   @override
-  void setUserProperties(Map<String, Object> properties) {
+  void setUserProperties(AnalyticsParameters properties) {
     for (final provider in _providers) {
       provider.setUserProperties(properties);
     }

@@ -15,7 +15,7 @@ class SpyAnalyticsProvider implements AnalyticsProvider {
   }
 
   @override
-  void setUserProperties(Map<String, Object> properties) {
+  void setUserProperties(AnalyticsParameters properties) {
     calls.add('setUserProperties $properties');
   }
 

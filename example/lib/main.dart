@@ -14,10 +14,9 @@ class AppDependencies {
 
   static Future<AppDependencies> create() async {
     final recorder = RecordingAnalyticsProvider();
-    final AnalyticsService analytics = CompositeAnalytics(providers: [
-      ConsoleAnalyticsProvider(),
-      recorder,
-    ]);
+    final AnalyticsService analytics = CompositeAnalytics(
+      providers: [ConsoleAnalyticsProvider(), recorder],
+    );
 
     final preferences = await SharedPreferences.getInstance();
     final userIDProvider = AnonymousUserIDProvider(
@@ -62,7 +61,11 @@ class ExampleApp extends StatelessWidget {
 }
 
 class ExampleScreen extends StatelessWidget {
-  const ExampleScreen({super.key, required this.userID, required this.recorder});
+  const ExampleScreen({
+    super.key,
+    required this.userID,
+    required this.recorder,
+  });
 
   final String userID;
   final RecordingAnalyticsProvider recorder;
@@ -83,10 +86,12 @@ class ExampleScreen extends StatelessWidget {
               Text('User ID', style: Theme.of(context).textTheme.labelLarge),
               Text(userID, key: const Key('user_id')),
               FilledButton(
-                onPressed: () => analytics.track(const AnalyticsEvent(
-                  name: 'button_tapped',
-                  parameters: {'screen': 'example'},
-                )),
+                onPressed: () => analytics.track(
+                  const AnalyticsEvent(
+                    name: 'button_tapped',
+                    parameters: {'screen': AnalyticsValue.string('example')},
+                  ),
+                ),
                 child: const Text('Track event'),
               ),
               ListenableBuilder(

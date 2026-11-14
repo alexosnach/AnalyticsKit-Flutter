@@ -20,10 +20,45 @@ void main() {
     test('keeps the given parameters', () {
       const event = AnalyticsEvent(
         name: 'paywall_shown',
-        parameters: {'source': 'onboarding'},
+        parameters: {'source': AnalyticsValue.string('onboarding')},
       );
 
-      expect(event.parameters['source'], 'onboarding');
+      expect(event.parameters['source'],
+          const AnalyticsValue.string('onboarding'));
+    });
+  });
+
+  group('AnalyticsValue', () {
+    test('constructors make the matching case', () {
+      expect(const AnalyticsValue.string('text'), const StringValue('text'));
+      expect(const AnalyticsValue.int(2), const IntValue(2));
+      expect(const AnalyticsValue.double(1.5), const DoubleValue(1.5));
+      expect(const AnalyticsValue.bool(true), const BoolValue(true));
+    });
+
+    test('different cases are never equal', () {
+      expect(const AnalyticsValue.int(1) == const AnalyticsValue.double(1.0),
+          isFalse);
+      expect(
+          const AnalyticsValue.string('true') ==
+              const AnalyticsValue.bool(true),
+          isFalse);
+    });
+
+    test('plain value is the plain Dart value', () {
+      expect(const AnalyticsValue.string('text').plainValue, 'text');
+      expect(const AnalyticsValue.int(2).plainValue, 2);
+      expect(const AnalyticsValue.double(1.5).plainValue, 1.5);
+      expect(const AnalyticsValue.bool(true).plainValue, true);
+    });
+
+    test('plain values keeps every key', () {
+      const AnalyticsParameters parameters = {
+        'source': AnalyticsValue.string('paywall'),
+        'step': AnalyticsValue.int(3),
+      };
+
+      expect(parameters.plainValues, {'source': 'paywall', 'step': 3});
     });
   });
 
@@ -34,9 +69,11 @@ void main() {
       final analytics = CompositeAnalytics(providers: [first, second]);
       final id = hasher.hash('user');
 
-      analytics.track(const AnalyticsEvent(name: 'app_opened', parameters: {'n': 1}));
+      analytics.track(const AnalyticsEvent(
+          name: 'app_opened', parameters: {'n': AnalyticsValue.int(1)}));
       analytics.setUserID(id);
-      analytics.setUserProperties({'is_premium': true});
+      analytics
+          .setUserProperties(const {'is_premium': AnalyticsValue.bool(true)});
       analytics.reset();
 
       final expected = [
@@ -73,7 +110,9 @@ void main() {
       final spies = List.generate(3, (_) => SpyAnalyticsProvider());
       final analytics = CompositeAnalytics(providers: spies);
 
-      analytics.track(const AnalyticsEvent(name: 'purchase', parameters: {'price': 9.99}));
+      analytics.track(const AnalyticsEvent(
+          name: 'purchase',
+          parameters: {'price': AnalyticsValue.double(9.99)}));
 
       for (final spy in spies) {
         expect(spy.calls, ['track purchase {price: 9.99}']);
@@ -206,14 +245,16 @@ void main() {
   // The plugin with its in-memory backend. The example app's integration
   // tests run the same store against the real storage of a device.
   group('SharedPreferencesUserIDStore', () {
-    Future<SharedPreferences> preferences([Map<String, Object> values = const {}]) {
+    Future<SharedPreferences> preferences(
+        [Map<String, Object> values = const {}]) {
       SharedPreferences.setMockInitialValues(values);
       return SharedPreferences.getInstance();
     }
 
     test('has no ID before the first save', () async {
       final failures = <UserIDStoreFailure>[];
-      final store = SharedPreferencesUserIDStore(await preferences(), onError: failures.add);
+      final store = SharedPreferencesUserIDStore(await preferences(),
+          onError: failures.add);
 
       expect(store.load(), isNull);
       expect(failures, isEmpty, reason: 'A missing ID is not a failure');
@@ -262,7 +303,8 @@ void main() {
       expect(store.load(), isNull);
       expect(failures, hasLength(1));
       expect(failures.single.operation, 'read');
-      expect('${failures.single}', 'SharedPreferences read failed: expected a String, found int');
+      expect('${failures.single}',
+          'SharedPreferences read failed: expected a String, found int');
     });
 
     test('reports a write failure and keeps the ID for this launch', () async {
@@ -303,9 +345,12 @@ void main() {
     });
 
     test('describes the operation and the cause', () {
-      expect('${const UserIDStoreFailure.read('boom')}', 'SharedPreferences read failed: boom');
-      expect('${const UserIDStoreFailure.write()}', 'SharedPreferences write failed');
-      expect('${const UserIDStoreFailure.write('disk full')}', 'SharedPreferences write failed: disk full');
+      expect('${const UserIDStoreFailure.read('boom')}',
+          'SharedPreferences read failed: boom');
+      expect('${const UserIDStoreFailure.write()}',
+          'SharedPreferences write failed');
+      expect('${const UserIDStoreFailure.write('disk full')}',
+          'SharedPreferences write failed: disk full');
     });
   });
 
@@ -315,7 +360,8 @@ void main() {
 
       analytics.track(const AnalyticsEvent(name: 'app_opened'));
       analytics.setUserID(hasher.hash('user'));
-      analytics.setUserProperties({'is_premium': true});
+      analytics
+          .setUserProperties(const {'is_premium': AnalyticsValue.bool(true)});
       analytics.reset();
     });
   });
@@ -339,7 +385,8 @@ void main() {
       await tester.pumpWidget(AnalyticsScope(
         analytics: analytics,
         child: Builder(builder: (context) {
-          AnalyticsScope.of(context).track(const AnalyticsEvent(name: 'screen_shown'));
+          AnalyticsScope.of(context)
+              .track(const AnalyticsEvent(name: 'screen_shown'));
           return const SizedBox();
         }),
       ));
@@ -362,7 +409,7 @@ class _NamedProvider implements AnalyticsProvider {
   void setUserID(HashedUserID id) {}
 
   @override
-  void setUserProperties(Map<String, Object> properties) {}
+  void setUserProperties(AnalyticsParameters properties) {}
 
   @override
   void reset() {}
@@ -373,5 +420,6 @@ class _FailingStore extends InMemorySharedPreferencesStore {
   _FailingStore() : super.empty();
 
   @override
-  Future<bool> setValue(String valueType, String key, Object value) async => false;
+  Future<bool> setValue(String valueType, String key, Object value) async =>
+      false;
 }

@@ -1,3 +1,4 @@
+import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'identifier_hasher.dart';
 
@@ -9,7 +10,7 @@ abstract interface class EventTracking {
 /// Says who the user is. Used in the Composition Root, not in the UI.
 abstract interface class UserIdentification {
   void setUserID(HashedUserID id);
-  void setUserProperties(Map<String, Object> properties);
+  void setUserProperties(AnalyticsParameters properties);
   void reset();
 }
 

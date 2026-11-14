@@ -1,3 +1,4 @@
+import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'analytics_service.dart';
 import 'identifier_hasher.dart';
@@ -13,7 +14,7 @@ class NoOpAnalytics implements AnalyticsService {
   void setUserID(HashedUserID id) {}
 
   @override
-  void setUserProperties(Map<String, Object> properties) {}
+  void setUserProperties(AnalyticsParameters properties) {}
 
   @override
   void reset() {}

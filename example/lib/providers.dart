@@ -17,7 +17,7 @@ class ConsoleAnalyticsProvider implements AnalyticsProvider {
   }
 
   @override
-  void setUserProperties(Map<String, Object> properties) {
+  void setUserProperties(AnalyticsParameters properties) {
     debugPrint('Analytics: setUserProperties $properties');
   }
 
@@ -45,7 +45,7 @@ class RecordingAnalyticsProvider extends ChangeNotifier
   }
 
   @override
-  void setUserProperties(Map<String, Object> properties) {}
+  void setUserProperties(AnalyticsParameters properties) {}
 
   @override
   void reset() {

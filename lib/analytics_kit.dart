@@ -5,6 +5,7 @@ export 'src/analytics_event.dart';
 export 'src/analytics_provider.dart';
 export 'src/analytics_scope.dart';
 export 'src/analytics_service.dart';
+export 'src/analytics_value.dart';
 export 'src/composite_analytics.dart';
 export 'src/identifier_hasher.dart';
 export 'src/no_op_analytics.dart';

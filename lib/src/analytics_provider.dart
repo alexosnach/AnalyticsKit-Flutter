@@ -1,3 +1,4 @@
+import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'identifier_hasher.dart';
 
@@ -12,6 +13,6 @@ import 'identifier_hasher.dart';
 abstract interface class AnalyticsProvider {
   void track(AnalyticsEvent event);
   void setUserID(HashedUserID id);
-  void setUserProperties(Map<String, Object> properties);
+  void setUserProperties(AnalyticsParameters properties);
   void reset();
 }
