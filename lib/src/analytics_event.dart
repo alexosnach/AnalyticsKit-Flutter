@@ -13,10 +13,17 @@ class AnalyticsEvent {
     this.destinations = Destinations.all,
   });
 
+  /// Event name as providers show it. Use `snake_case`, at most 40 characters
+  /// (the strictest common SDK limit), and keep it stable: dashboards and
+  /// funnels are built on it.
   final String name;
+
+  /// Details of this occurrence; none by default. No personal data.
   final AnalyticsParameters parameters;
 
-  /// Which providers receive the event; every one by default.
+  /// Which providers receive the event; every one by default. Narrow it for
+  /// provider-specific events, e.g. AppsFlyer's `af_*` events:
+  /// `Destinations.only({Providers.appsFlyer})`.
   final Destinations destinations;
 
   @override

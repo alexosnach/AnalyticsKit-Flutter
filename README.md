@@ -1,6 +1,6 @@
 # AnalyticsKit for Flutter
 
-A provider-agnostic analytics layer for Flutter apps: one `AnalyticsService` that fans out to any number of analytics SDKs, plus a hashed, persistent user ID.
+A provider-agnostic analytics layer for Flutter apps: one `AnalyticsService` that fans out to any number of analytics SDKs, with per-event routing, screen and revenue tracking, typed parameters and a hashed, persistent user ID.
 
 The Dart counterpart of [AnalyticsKit for Swift](https://github.com/alexosnach/AnalyticsKit) and [AnalyticsKit for Android](https://github.com/alexosnach/AnalyticsKit-Android) — same types, same names, same behaviour.
 
@@ -18,7 +18,7 @@ dependencies:
   analytics_kit:
     git:
       url: https://github.com/alexosnach/AnalyticsKit-Flutter.git
-      ref: 1.0.0
+      ref: 2.0.0
   shared_preferences: ^2.3.0
 ```
 
@@ -49,9 +49,93 @@ analytics.setUserID(userIDProvider.currentUserID());
 // Tracking
 analytics.track(const AnalyticsEvent(
   name: 'paywall_shown',
-  parameters: {'source': 'onboarding'},
+  parameters: {'source': AnalyticsValue.string('onboarding')},
 ));
 ```
+
+## Typed parameters
+
+Parameters and user properties are `AnalyticsParameters` (`Map<String, AnalyticsValue>`): `AnalyticsValue.string`, `.int`, `.double` or `.bool`. A value an SDK can't serialise doesn't compile. In an adapter, `parameters.plainValues` gives `Map<String, Object>` for SDKs that take `Object`.
+
+## Routing events to providers
+
+Every provider declares its own `ProviderID` next to its adapter — the package has no list of providers, so adding one never changes it:
+
+```dart
+abstract final class Providers {
+  static const amplitude = ProviderID('amplitude');
+  static const appsFlyer = ProviderID('appsflyer');
+}
+```
+
+An event goes to every provider by default; `destinations` narrows it:
+
+```dart
+analytics.track(const AnalyticsEvent(
+  name: 'af_complete_registration',
+  destinations: Destinations.only({Providers.appsFlyer}),
+));
+analytics.track(const AnalyticsEvent(
+  name: 'tutorial_finished',
+  destinations: Destinations.except({Providers.appsFlyer}),
+));
+```
+
+An ID of a provider that isn't plugged in is simply never matched. User identification (`setUserID`, `setUserProperties`, `reset`) always reaches every provider.
+
+## Screens
+
+SDKs' automatic screen tracking sees routes or the Flutter activity, not your screens, so report them yourself — once each time a screen becomes visible (from `initState` or a route observer, not from `build`):
+
+```dart
+analytics.trackScreen(const ScreenView(name: 'paywall', screenClass: 'PaywallScreen'));
+```
+
+Implementing `ScreenTracking` in a provider is optional. A provider whose SDK has a screen API implements it and receives the `ScreenView`; every other provider automatically receives a `screen_view` event with `screen_name` and `screen_class`, so no screen is lost and nothing has to be implemented:
+
+```dart
+class FirebaseAnalyticsProvider implements AnalyticsProvider, ScreenTracking {
+  // …
+  @override
+  void trackScreen(ScreenView screen) {
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: screen.name,
+      screenClass: screen.screenClass ?? screen.name,
+    );
+  }
+}
+```
+
+`destinations` works the same as for events.
+
+## Revenue
+
+```dart
+analytics.trackPurchase(Purchase(
+  productID: 'premium_yearly',
+  transactionID: details.purchaseID ?? '',
+  price: 39.99,                     // one unit
+  currency: 'USD',                  // ISO 4217
+  destinations: Destinations.all,   // or Destinations.only({...})
+));
+```
+
+`Purchase` doesn't depend on `in_app_purchase` — convert your purchase type in the app. Only providers that also implement `RevenueTracking` receive purchases; the others don't implement anything:
+
+```dart
+class AmplitudeAnalyticsProvider implements AnalyticsProvider, RevenueTracking {
+  // …
+  @override
+  void trackPurchase(Purchase purchase) {
+    amplitude.revenue(Revenue()
+      ..productId = purchase.productID
+      ..price = purchase.price
+      ..quantity = purchase.quantity);
+  }
+}
+```
+
+`price` is a `double`: Dart has no built-in decimal type, and the Flutter plugins of Firebase, Amplitude and AppsFlyer take revenue as `double` anyway. The Swift and Android libraries use `Decimal` and `BigDecimal`.
 
 ## Widgets
 
@@ -78,7 +162,7 @@ class PaywallScreen extends StatelessWidget {
 }
 ```
 
-Widgets get only `EventTracking` (`track`); identifying the user (`UserIdentification`) stays in the Composition Root.
+Widgets get only `UiAnalytics` (`track`, `trackScreen`); identifying the user and revenue stay out of the UI.
 
 ## Writing a provider
 
@@ -90,6 +174,9 @@ import 'package:flutter/foundation.dart';
 
 class ConsoleAnalyticsProvider implements AnalyticsProvider {
   @override
+  ProviderID get id => const ProviderID('console');
+
+  @override
   void track(AnalyticsEvent event) {
     debugPrint('Analytics: track ${event.name} ${event.parameters}');
   }
@@ -100,7 +187,7 @@ class ConsoleAnalyticsProvider implements AnalyticsProvider {
   }
 
   @override
-  void setUserProperties(Map<String, Object> properties) {
+  void setUserProperties(AnalyticsParameters properties) {
     debugPrint('Analytics: setUserProperties $properties');
   }
 
@@ -111,9 +198,9 @@ class ConsoleAnalyticsProvider implements AnalyticsProvider {
 }
 ```
 
-A provider for Amplitude or Firebase has the same four methods and calls the SDK in each.
+A provider for Amplitude or Firebase has the same `id` and four methods and calls the SDK in each; use `event.parameters.plainValues` where the SDK takes `Map<String, Object>`.
 
-Adding another analytics system = adding one more provider to the `CompositeAnalytics` list. Nothing else changes.
+Adding another analytics system = one more provider (with its `ProviderID`) in the `CompositeAnalytics` list. Nothing in the package or at call sites changes.
 
 The [`example`](example) app has two small providers and a full Composition Root.
 
@@ -127,6 +214,8 @@ The [`example`](example) app has two small providers and a full Composition Root
 
 ### Differences from the native libraries
 
+- **Threads.** The Swift library marks its types `Sendable`; the Kotlin one documents them as thread-safe. Dart runs each isolate on one thread, so every call simply runs on the caller's isolate; events, screens and purchases are immutable, so they can also be sent to another isolate.
+
 - **Where the ID lives.** The Swift library keeps it in the Keychain, where it survives a reinstall. Here it is in `UserDefaults` on iOS and `SharedPreferences` on Android: removing the app removes the ID, and it comes back only through the system backup. For another policy implement `UserIDStore` yourself (two methods).
 - **When it is written.** `save` keeps the ID in memory at once and writes it to disk in the background; the native libraries write before they return. If the process dies in the first moments after the very first launch, the next launch makes a new ID.
 - **A Flutter app and a native app do not share an ID**, even on the same device: each keeps its own.
@@ -135,15 +224,21 @@ The [`example`](example) app has two small providers and a full Composition Root
 
 | Type | Purpose |
 |---|---|
-| `AnalyticsService` | `EventTracking` + `UserIdentification` — what the app uses |
-| `AnalyticsProvider` | What an SDK adapter implements |
-| `CompositeAnalytics` | Forwards every call to all providers, in order |
+| `AnalyticsService` | `UiAnalytics` + `RevenueTracking` + `UserIdentification` — what the app uses |
+| `UiAnalytics` | `EventTracking` + `ScreenTracking` — what widgets get |
+| `AnalyticsProvider` | What an SDK adapter implements (with its `id`) |
+| `ScreenTracking`, `ScreenView` | `trackScreen` — optional for providers; others get a `screen_view` event |
+| `RevenueTracking` | `trackPurchase` — implemented by providers whose SDK records revenue |
+| `CompositeAnalytics` | Forwards calls to providers, in order, honouring `destinations` |
 | `NoOpAnalytics` | Does nothing (tests) |
-| `AnalyticsEvent` | `name` + `parameters` |
+| `AnalyticsEvent` | `name` + `parameters` + `destinations` |
+| `Purchase` | Store-agnostic purchase: product, transaction, price, currency, quantity |
+| `AnalyticsValue`, `AnalyticsParameters` | Typed, immutable values |
+| `ProviderID`, `Destinations` | Which providers receive an event, screen or purchase |
 | `HashedUserID`, `IdentifierHasher`, `SHA256IdentifierHasher` | Safe user IDs |
 | `UserIDProvider`, `AnonymousUserIDProvider` | Where the user ID comes from |
 | `UserIDStore`, `SharedPreferencesUserIDStore`, `UserIDStoreFailure` | Where the raw ID is persisted |
-| `AnalyticsScope` | `EventTracking` for widgets |
+| `AnalyticsScope` | `UiAnalytics` for widgets |
 
 The names match the other two libraries (`setUserID`, `HashedUserID`), not the Dart `Id` convention.
 

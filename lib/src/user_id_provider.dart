@@ -9,6 +9,8 @@ import 'user_id_store.dart';
 /// a provider that hashes the backend's ID replaces this one in the
 /// Composition Root; the code that sends the ID does not change.
 abstract interface class UserIDProvider {
+  /// The hashed ID to pass to `UserIdentification.setUserID`.
+  /// Call it at launch; it returns the same ID every time.
   HashedUserID currentUserID();
 }
 
@@ -17,6 +19,9 @@ abstract interface class UserIDProvider {
 /// It identifies this app on this device: another device of the same person
 /// gets its own.
 class AnonymousUserIDProvider implements UserIDProvider {
+  /// [store] is where the raw ID lives (`SharedPreferencesUserIDStore` in
+  /// production); [hasher] is how it is hashed (`SHA256IdentifierHasher`
+  /// matches the other platforms).
   const AnonymousUserIDProvider({
     required UserIDStore store,
     required IdentifierHasher hasher,
@@ -26,6 +31,7 @@ class AnonymousUserIDProvider implements UserIDProvider {
   final UserIDStore _store;
   final IdentifierHasher _hasher;
 
+  /// The saved ID, hashed; on first launch a new lowercase UUID is made and saved.
   @override
   HashedUserID currentUserID() => _hasher.hash(_rawID());
 

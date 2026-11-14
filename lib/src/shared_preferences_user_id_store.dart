@@ -25,6 +25,9 @@ import 'user_id_store.dart';
 /// The store reports it to `onError`, so the app can log it with its own
 /// logger or send it to crash reporting.
 class SharedPreferencesUserIDStore implements UserIDStore {
+  /// [key] is where the ID is kept; change it only to keep several IDs apart.
+  /// [onError] is called on any storage failure (a missing ID is not one):
+  /// log it, don't show it to the user.
   SharedPreferencesUserIDStore(
     SharedPreferences preferences, {
     String key = 'analytics.user_id',
@@ -39,6 +42,7 @@ class SharedPreferencesUserIDStore implements UserIDStore {
 
   static void _ignore(UserIDStoreFailure failure) {}
 
+  /// The saved ID, or `null` if there is none or reading failed (reported to `onError`).
   @override
   String? load() {
     final Object? value;
@@ -58,6 +62,8 @@ class SharedPreferencesUserIDStore implements UserIDStore {
     return null;
   }
 
+  /// Keeps the ID in memory at once and writes it to disk in the background;
+  /// a failure goes to `onError`.
   @override
   void save(String id) {
     _preferences.setString(_key, id).then(

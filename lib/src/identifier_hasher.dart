@@ -23,14 +23,22 @@ class HashedUserID {
 }
 
 /// Turns a raw identifier into the one analytics receives.
+///
+/// Use it directly when the app already has a user ID, e.g. from its backend
+/// after sign-in: `analytics.setUserID(hasher.hash(user.id))`.
 abstract interface class IdentifierHasher {
+  /// The hashed form of [identifier]; the same input always gives the same result.
   HashedUserID hash(String identifier);
 }
 
 /// SHA-256 as a lowercase hex string of 64 characters.
+///
+/// The same algorithm and format as the Swift and Android libraries, so one
+/// user gets the same ID on every platform.
 class SHA256IdentifierHasher implements IdentifierHasher {
   const SHA256IdentifierHasher();
 
+  /// SHA-256 of the identifier's UTF-8 bytes, as lowercase hex.
   @override
   HashedUserID hash(String identifier) {
     final digest = sha256.convert(utf8.encode(identifier));

@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'analytics_service.dart';
 import 'no_op_analytics.dart';
 
-/// Gives the analytics to the widgets below it.
+/// Gives event and screen tracking to the widgets below it.
 ///
 /// ```dart
 /// runApp(AnalyticsScope(analytics: analytics, child: const MyApp()));
@@ -12,8 +12,8 @@ import 'no_op_analytics.dart';
 /// analytics.track(const AnalyticsEvent(name: 'subscribe_tapped'));
 /// ```
 ///
-/// Widgets get only [UiAnalytics]: identifying the user stays in the
-/// Composition Root.
+/// Widgets get only [UiAnalytics] (`track`, `trackScreen`): identifying
+/// the user and revenue stay out of the UI.
 class AnalyticsScope extends InheritedWidget {
   const AnalyticsScope({
     super.key,
