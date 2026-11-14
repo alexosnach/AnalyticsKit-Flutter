@@ -1,3 +1,4 @@
+import 'purchase.dart';
 import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'analytics_provider.dart';
@@ -26,6 +27,16 @@ class CompositeAnalytics implements AnalyticsService {
       : _providers = List.unmodifiable(providers);
 
   final List<AnalyticsProvider> _providers;
+
+  @override
+  void trackPurchase(Purchase purchase) {
+    for (final provider in _providers) {
+      if (provider is RevenueTracking &&
+          purchase.destinations.includes(provider.id)) {
+        (provider as RevenueTracking).trackPurchase(purchase);
+      }
+    }
+  }
 
   @override
   void track(AnalyticsEvent event) {

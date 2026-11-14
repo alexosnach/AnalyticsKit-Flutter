@@ -359,6 +359,8 @@ void main() {
       const AnalyticsService analytics = NoOpAnalytics();
 
       analytics.track(const AnalyticsEvent(name: 'app_opened'));
+      analytics.trackPurchase(const Purchase(
+          productID: 'p', transactionID: 't', price: 1, currency: 'USD'));
       analytics.setUserID(hasher.hash('user'));
       analytics
           .setUserProperties(const {'is_premium': AnalyticsValue.bool(true)});

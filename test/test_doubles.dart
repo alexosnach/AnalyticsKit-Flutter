@@ -30,6 +30,17 @@ class SpyAnalyticsProvider implements AnalyticsProvider {
   }
 }
 
+/// A provider whose SDK also records revenue.
+class SpyRevenueProvider extends SpyAnalyticsProvider
+    implements RevenueTracking {
+  SpyRevenueProvider(super.id);
+
+  final List<Purchase> purchases = [];
+
+  @override
+  void trackPurchase(Purchase purchase) => purchases.add(purchase);
+}
+
 /// Keeps the ID in memory; can be told to forget every save.
 class InMemoryUserIDStore implements UserIDStore {
   /// [keepsSaves] `false` acts like a storage that fails to write.

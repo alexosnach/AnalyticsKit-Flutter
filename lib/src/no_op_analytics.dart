@@ -1,3 +1,4 @@
+import 'purchase.dart';
 import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'analytics_service.dart';
@@ -9,6 +10,9 @@ class NoOpAnalytics implements AnalyticsService {
 
   @override
   void track(AnalyticsEvent event) {}
+
+  @override
+  void trackPurchase(Purchase purchase) {}
 
   @override
   void setUserID(HashedUserID id) {}
