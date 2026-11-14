@@ -12,6 +12,7 @@ export 'src/identifier_hasher.dart';
 export 'src/no_op_analytics.dart';
 export 'src/provider_id.dart';
 export 'src/purchase.dart';
+export 'src/screen_view.dart';
 export 'src/shared_preferences_user_id_store.dart';
 export 'src/user_id_provider.dart';
 export 'src/user_id_store.dart';

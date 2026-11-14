@@ -359,6 +359,7 @@ void main() {
       const AnalyticsService analytics = NoOpAnalytics();
 
       analytics.track(const AnalyticsEvent(name: 'app_opened'));
+      analytics.trackScreen(const ScreenView(name: 'home'));
       analytics.trackPurchase(const Purchase(
           productID: 'p', transactionID: 't', price: 1, currency: 'USD'));
       analytics.setUserID(hasher.hash('user'));
@@ -370,7 +371,7 @@ void main() {
 
   group('AnalyticsScope', () {
     testWidgets('defaults to NoOpAnalytics', (tester) async {
-      late EventTracking found;
+      late UiAnalytics found;
 
       await tester.pumpWidget(Builder(builder: (context) {
         found = AnalyticsScope.of(context);

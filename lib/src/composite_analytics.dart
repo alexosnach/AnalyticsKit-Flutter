@@ -1,3 +1,4 @@
+import 'screen_view.dart';
 import 'purchase.dart';
 import 'analytics_value.dart';
 import 'analytics_event.dart';
@@ -27,6 +28,18 @@ class CompositeAnalytics implements AnalyticsService {
       : _providers = List.unmodifiable(providers);
 
   final List<AnalyticsProvider> _providers;
+
+  @override
+  void trackScreen(ScreenView screen) {
+    for (final provider in _providers) {
+      if (!screen.destinations.includes(provider.id)) continue;
+      if (provider is ScreenTracking) {
+        (provider as ScreenTracking).trackScreen(screen);
+      } else {
+        provider.track(screen.fallbackEvent);
+      }
+    }
+  }
 
   @override
   void trackPurchase(Purchase purchase) {

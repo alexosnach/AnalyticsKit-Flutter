@@ -41,6 +41,16 @@ class SpyRevenueProvider extends SpyAnalyticsProvider
   void trackPurchase(Purchase purchase) => purchases.add(purchase);
 }
 
+/// A provider whose SDK has its own screen API.
+class SpyScreenProvider extends SpyAnalyticsProvider implements ScreenTracking {
+  SpyScreenProvider(super.id);
+
+  final List<ScreenView> screens = [];
+
+  @override
+  void trackScreen(ScreenView screen) => screens.add(screen);
+}
+
 /// Keeps the ID in memory; can be told to forget every save.
 class InMemoryUserIDStore implements UserIDStore {
   /// [keepsSaves] `false` acts like a storage that fails to write.

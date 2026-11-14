@@ -1,3 +1,4 @@
+import 'screen_view.dart';
 import 'purchase.dart';
 import 'analytics_value.dart';
 import 'analytics_event.dart';
@@ -10,6 +11,9 @@ class NoOpAnalytics implements AnalyticsService {
 
   @override
   void track(AnalyticsEvent event) {}
+
+  @override
+  void trackScreen(ScreenView screen) {}
 
   @override
   void trackPurchase(Purchase purchase) {}

@@ -60,7 +60,7 @@ class ExampleApp extends StatelessWidget {
   }
 }
 
-class ExampleScreen extends StatelessWidget {
+class ExampleScreen extends StatefulWidget {
   const ExampleScreen({
     super.key,
     required this.userID,
@@ -71,9 +71,30 @@ class ExampleScreen extends StatelessWidget {
   final RecordingAnalyticsProvider recorder;
 
   @override
+  State<ExampleScreen> createState() => _ExampleScreenState();
+}
+
+class _ExampleScreenState extends State<ExampleScreen> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Once when the screen appears; providers without a screen API get a `screen_view` event.
+    if (!_screenTracked) {
+      _screenTracked = true;
+      AnalyticsScope.of(context).trackScreen(
+        const ScreenView(name: 'example', screenClass: 'ExampleScreen'),
+      );
+    }
+  }
+
+  bool _screenTracked = false;
+
+  @override
   Widget build(BuildContext context) {
-    // The screen gets only `EventTracking`: it can send events and nothing else.
+    // The screen gets only `UiAnalytics`: it can send events and screens, nothing else.
     final analytics = AnalyticsScope.of(context);
+    final userID = widget.userID;
+    final recorder = widget.recorder;
 
     return Scaffold(
       body: SafeArea(

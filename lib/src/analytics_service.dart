@@ -1,3 +1,4 @@
+import 'screen_view.dart';
 import 'purchase.dart';
 import 'analytics_value.dart';
 import 'analytics_event.dart';
@@ -7,6 +8,18 @@ import 'identifier_hasher.dart';
 abstract interface class EventTracking {
   void track(AnalyticsEvent event);
 }
+
+/// Reports which screens the user opens.
+///
+/// The app calls it on the service. A provider implements it only when its SDK
+/// has its own screen API; every other provider receives
+/// [ScreenView.fallbackEvent] through [EventTracking.track].
+abstract interface class ScreenTracking {
+  void trackScreen(ScreenView screen);
+}
+
+/// What the UI gets through `AnalyticsScope`: events and screens, nothing else.
+abstract interface class UiAnalytics implements EventTracking, ScreenTracking {}
 
 /// Records revenue.
 ///
@@ -25,4 +38,4 @@ abstract interface class UserIdentification {
 
 /// The analytics the app uses: [EventTracking] and [UserIdentification] together.
 abstract interface class AnalyticsService
-    implements EventTracking, RevenueTracking, UserIdentification {}
+    implements UiAnalytics, RevenueTracking, UserIdentification {}

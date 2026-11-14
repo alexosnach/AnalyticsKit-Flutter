@@ -12,7 +12,7 @@ import 'no_op_analytics.dart';
 /// analytics.track(const AnalyticsEvent(name: 'subscribe_tapped'));
 /// ```
 ///
-/// Widgets get only [EventTracking]: identifying the user stays in the
+/// Widgets get only [UiAnalytics]: identifying the user stays in the
 /// Composition Root.
 class AnalyticsScope extends InheritedWidget {
   const AnalyticsScope({
@@ -21,11 +21,11 @@ class AnalyticsScope extends InheritedWidget {
     required super.child,
   });
 
-  final EventTracking analytics;
+  final UiAnalytics analytics;
 
   /// The analytics of the nearest scope, or [NoOpAnalytics] when there is
   /// none, so widget tests and previews stay silent.
-  static EventTracking of(BuildContext context) {
+  static UiAnalytics of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AnalyticsScope>();
     return scope?.analytics ?? const NoOpAnalytics();
   }
