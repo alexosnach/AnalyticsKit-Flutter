@@ -5,7 +5,11 @@ import 'analytics_service.dart';
 import 'identifier_hasher.dart';
 
 /// The analytics the whole app uses: one [AnalyticsService] that forwards
-/// every call to all its providers, in their order.
+/// calls to its providers, in their order.
+///
+/// An event goes only to the providers its [AnalyticsEvent.destinations]
+/// include. User identification goes to every provider, so the user is the
+/// same person in each analytics system.
 ///
 /// A new analytics system is a new provider in the list the Composition Root
 /// builds; this type and the code that calls it do not change.
@@ -26,7 +30,9 @@ class CompositeAnalytics implements AnalyticsService {
   @override
   void track(AnalyticsEvent event) {
     for (final provider in _providers) {
-      provider.track(event);
+      if (event.destinations.includes(provider.id)) {
+        provider.track(event);
+      }
     }
   }
 

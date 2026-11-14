@@ -2,6 +2,11 @@ import 'package:analytics_kit/analytics_kit.dart';
 
 /// Records every call, in order, in a form tests can compare.
 class SpyAnalyticsProvider implements AnalyticsProvider {
+  SpyAnalyticsProvider([this.id = const ProviderID('spy')]);
+
+  @override
+  final ProviderID id;
+
   final List<String> calls = [];
 
   @override

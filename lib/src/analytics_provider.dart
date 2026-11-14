@@ -1,6 +1,7 @@
 import 'analytics_value.dart';
 import 'analytics_event.dart';
 import 'identifier_hasher.dart';
+import 'provider_id.dart';
 
 /// One analytics system plugged into the app: Amplitude, Firebase, the console.
 ///
@@ -11,6 +12,9 @@ import 'identifier_hasher.dart';
 /// An implementation adapts these calls to its SDK: names, value types and
 /// limits of the SDK stay inside that one file.
 abstract interface class AnalyticsProvider {
+  /// Matched against an event's `Destinations`; declare it next to the adapter.
+  ProviderID get id;
+
   void track(AnalyticsEvent event);
   void setUserID(HashedUserID id);
   void setUserProperties(AnalyticsParameters properties);

@@ -403,6 +403,9 @@ class _NamedProvider implements AnalyticsProvider {
   final List<String> order;
 
   @override
+  ProviderID get id => ProviderID(name);
+
+  @override
   void track(AnalyticsEvent event) => order.add(name);
 
   @override
